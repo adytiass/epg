@@ -7,7 +7,6 @@ on:
 
 concurrency:
   group: epg-update
-  cancel-in-progress: true
 
 jobs:
   update-epg:
