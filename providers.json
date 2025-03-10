@@ -1,0 +1,37 @@
+[
+  {
+    "name": "MNC Vision",
+    "site": "mncvision.id",
+    "file": "channel/mncvision.id.xml"
+  },
+  {
+    "name": "Vision Plus",
+    "site": "visionplus.id",
+    "file": "channel/visionplus.id.xml"
+  },
+  {
+    "name": "CubMu",
+    "site": "cubmu.com",
+    "file": "channel/cubmu.com.xml"
+  },
+  {
+    "name": "First Media",
+    "site": "firstmedia.com",
+    "file": "channel/firstmedia.com.xml"
+  },
+  {
+    "name": "Dens TV",
+    "site": "dens.tv",
+    "file": "channel/dens.tv.xml"
+  },
+  {
+    "name": "Indihome TV",
+    "site": "indihometv.com",
+    "file": "channel/indihometv.com.xml"
+  },
+  {
+    "name": "Vidio",
+    "site": "vidio.com",
+    "file": "channel/vidio.com.xml"
+  }
+]
