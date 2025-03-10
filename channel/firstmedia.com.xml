@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" ?><tv date="20250310">
+<channel id="DAAITV.id"><display-name>DAAI TV</display-name><icon src="https://i.imgur.com/YC7JCHo.png"/><url>https://firstmedia.com</url></channel>
+<channel id="IMC.id"><display-name>IMC</display-name><icon src="https://i.postimg.cc/RhrVvp29/4r2D8xN.png"/><url>https://firstmedia.com</url></channel>
+<channel id="JakTV.id"><display-name>Jakarta TV - Jak TV</display-name><icon src="https://i.imgur.com/xyLLLOi.png"/><url>https://firstmedia.com</url></channel>
+<channel id="RajawaliTV.id"><display-name>Rajawali TV</display-name><icon src="https://i.imgur.com/dlsv1sl.png"/><url>https://firstmedia.com</url></channel>
+<channel id="TV9Nusantara.id"><display-name>TV9</display-name><icon src="https://i.imgur.com/xPjWyiL.png"/><url>https://firstmedia.com</url></channel>
+<channel id="tvOne.id"><display-name>TV One</display-name><icon src="https://i.imgur.com/LCzQYdy.png"/><url>https://firstmedia.com</url></channel>
+<channel id="TVRINasional.id"><display-name>TVRI Nasional</display-name><icon src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/TVRILogo2019.svg/512px-TVRILogo2019.svg.png"/><url>https://firstmedia.com</url></channel>
+<programme start="20250309170000 +0000" stop="20250309173000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250309173000 +0000" stop="20250309190000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250309190000 +0000" stop="20250309200000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250309200000 +0000" stop="20250309203000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250309203000 +0000" stop="20250309210000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250309210000 +0000" stop="20250309213000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250309213000 +0000" stop="20250309230000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250309230000 +0000" stop="20250309233000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250309233000 +0000" stop="20250310013000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250310013000 +0000" stop="20250310020000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250310020000 +0000" stop="20250310023000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250310023000 +0000" stop="20250310033000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250310033000 +0000" stop="20250310040000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250310040000 +0000" stop="20250310060000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250310060000 +0000" stop="20250310080000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250310080000 +0000" stop="20250310090000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250310090000 +0000" stop="20250310110000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250310110000 +0000" stop="20250310130000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250310130000 +0000" stop="20250310140000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250310140000 +0000" stop="20250310150000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250310150000 +0000" stop="20250310160000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250310160000 +0000" stop="20250310163000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250310163000 +0000" stop="20250310170000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250310170000 +0000" stop="20250310173000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250310173000 +0000" stop="20250310180000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250310180000 +0000" stop="20250310190000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250310190000 +0000" stop="20250310194500 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250310194500 +0000" stop="20250310203000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250310203000 +0000" stop="20250310210000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250310210000 +0000" stop="20250310213000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250310213000 +0000" stop="20250310230000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250310230000 +0000" stop="20250310233000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250310233000 +0000" stop="20250311013000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250311013000 +0000" stop="20250311020000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250311020000 +0000" stop="20250311023000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250311023000 +0000" stop="20250311033000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250311033000 +0000" stop="20250311040000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250311040000 +0000" stop="20250311060000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250311060000 +0000" stop="20250311080000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250311080000 +0000" stop="20250311090000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250311090000 +0000" stop="20250311110000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250311110000 +0000" stop="20250311130000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250311130000 +0000" stop="20250311143000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250311143000 +0000" stop="20250311153000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250311153000 +0000" stop="20250311160000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250311160000 +0000" stop="20250311163000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250311163000 +0000" stop="20250311170000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250311170000 +0000" stop="20250311173000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250311173000 +0000" stop="20250311180000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250311180000 +0000" stop="20250311190000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250311190000 +0000" stop="20250311194500 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250311194500 +0000" stop="20250311203000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250311203000 +0000" stop="20250311210000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250311210000 +0000" stop="20250311213000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250311213000 +0000" stop="20250311230000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250311230000 +0000" stop="20250311233000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250311233000 +0000" stop="20250312013000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250312013000 +0000" stop="20250312020000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250312020000 +0000" stop="20250312023000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250312023000 +0000" stop="20250312033000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250312033000 +0000" stop="20250312040000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250312040000 +0000" stop="20250312060000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250312060000 +0000" stop="20250312080000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250312080000 +0000" stop="20250312090000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250312090000 +0000" stop="20250312110000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250312110000 +0000" stop="20250312130000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250312130000 +0000" stop="20250312140000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250312140000 +0000" stop="20250312150000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250312150000 +0000" stop="20250312160000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250312160000 +0000" stop="20250312163000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+<programme start="20250312163000 +0000" stop="20250312170000 +0000" channel="tvOne.id"><title lang="id">TV One</title></programme>
+</tv>
