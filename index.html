@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EPG TV Guide</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #262626;
+            color: white;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            font-family: "Martian Mono", monospace;
+        }
+        label {
+            font-size: 18px;
+        }
+        select {
+            padding: 8px;
+            margin: 10px;
+            font-size: 16px;
+        }
+        #epgContainer {
+            margin-top: 20px;
+            padding: 10px;
+            text-align: left;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            background: #333;
+            border-radius: 10px;
+            padding: 15px;
+        }
+        .program {
+            padding: 8px;
+            border-bottom: 1px solid #444;
+        }
+        .program:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>EPG TV Guide</h1>
+
+    <label for="provider">Pilih Provider:</label>
+    <select id="provider" onchange="loadEPG()">
+        <option value="">-- Pilih Provider --</option>
+    </select>
+
+    <div id="epgContainer"></div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            loadProviders();
+        });
+
+        function loadProviders() {
+            fetch("providers.json")
+                .then(response => response.json())
+                .then(data => {
+                    let select = document.getElementById("provider");
+                    data.forEach(provider => {
+                        let option = document.createElement("option");
+                        option.value = provider.file;
+                        option.textContent = provider.name;
+                        select.appendChild(option);
+                    });
+                });
+        }
+
+        function loadEPG() {
+            let selectedFile = document.getElementById("provider").value;
+            if (!selectedFile) return;
+
+            fetch(selectedFile)
+                .then(response => response.text())
+                .then(xmlText => {
+                    let parser = new DOMParser();
+                    let xmlDoc = parser.parseFromString(xmlText, "application/xml");
+                    displayEPG(xmlDoc);
+                });
+        }
+
+        function displayEPG(xmlDoc) {
+            let epgContainer = document.getElementById("epgContainer");
+            epgContainer.innerHTML = "";
+
+            let programs = xmlDoc.getElementsByTagName("programme");
+            if (programs.length === 0) {
+                epgContainer.innerHTML = "<p>Tidak ada jadwal yang tersedia.</p>";
+                return;
+            }
+
+            for (let i = 0; i < programs.length; i++) {
+                let title = programs[i].getElementsByTagName("title")[0].textContent;
+                let startTime = programs[i].getAttribute("start");
+                let stopTime = programs[i].getAttribute("stop");
+
+                let div = document.createElement("div");
+                div.classList.add("program");
+                div.innerHTML = `<strong>${title}</strong> <br> (${formatTime(startTime)} - ${formatTime(stopTime)})`;
+                epgContainer.appendChild(div);
+            }
+        }
+
+        function formatTime(time) {
+            return time.substring(8, 10) + ":" + time.substring(10, 12);
+        }
+    </script>
+</body>
+</html>
