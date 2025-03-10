@@ -1,0 +1,51 @@
+name: EPG Update (All-in-One)
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 17 */3 * *"  # Jalankan setiap 3 jam
+
+concurrency:
+  group: epg-update
+  cancel-in-progress: true
+
+jobs:
+  update-epg:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        site: [mncvision.id, visionplus.id, cubmu.com, firstmedia.com, dens.tv, indihometv.com, vidio.com]
+        lang: [id, en]  # Bisa ditambahkan en jika perlu
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+
+      - name: Cache Node.js dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Grab EPG for ${{ matrix.site }}
+        run: npm run grab -- --site=${{ matrix.site }} --lang=${{ matrix.lang }} --output=channel/${{ matrix.site }}.xml --days 3 --maxConnections 5
+
+      - name: Commit and Push EPG Output for ${{ matrix.site }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git pull origin master --rebase
+          git add channel/${{ matrix.site }}.xml
+          git commit -m "Update EPG output for ${{ matrix.site }} [skip ci]" || echo "No changes to commit"
+          git push origin master
