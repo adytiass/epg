@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EPG Timeline - Auto Program Blocks</title>
+  <style>
+    /* Reset & Global */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #333;
+      color: #f0f0f0;
+    }
+    header {
+      background-color: #222;
+      padding: 10px;
+      text-align: center;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 18px;
+      font-family: "Martian Mono", monospace;
+    }
+
+    /* Container utama: daftar channel & schedule timeline */
+    .epg-container {
+      display: flex;
+      height: calc(100vh - 50px); /* Contoh: full screen minus header height */
+      overflow: hidden;
+    }
+
+    /* Sidebar channel list */
+    .channel-list {
+      width: 120px;
+      background-color: #2b2b2b;
+      overflow-y: auto;
+      border-right: 1px solid #444;
+    }
+    .channel-item {
+      padding: 10px;
+      border-bottom: 1px solid #444;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .channel-item img {
+      width: 40px; 
+      height: auto;
+    }
+    .channel-name {
+      font-size: 14px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Bagian timeline schedule */
+    .schedule-container {
+      position: relative;
+      flex: 1;
+      overflow: auto; /* agar bisa scroll horizontal */
+      background-color: #222;
+    }
+    .time-scale {
+      position: sticky;
+      top: 0;
+      background: #222;
+      display: flex;
+      border-bottom: 1px solid #444;
+      z-index: 10;
+    }
+    .time-slot {
+      width: 200px; /* lebar 1 jam = 200px */
+      text-align: center;
+      padding: 5px 0;
+      border-left: 1px solid #444;
+      font-size: 12px;
+    }
+
+    /* Satu row schedule per channel */
+    .schedule-row {
+      position: relative;
+      height: 50px; /* tinggi row channel */
+      border-bottom: 1px solid #444;
+    }
+
+    /* Blok program */
+    .program-block {
+      position: absolute;
+      top: 5px;
+      height: 40px;
+      background-color: #555;
+      border-radius: 4px;
+      padding: 5px;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      font-size: 12px;
+    }
+    .program-block:hover {
+      background-color: #666;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>EPG Timeline - Auto Program Blocks</h1>
+  </header>
+
+  <div class="epg-container">
+    <!-- Sidebar channel list -->
+    <div class="channel-list" id="channelList"></div>
+
+    <!-- Timeline schedule -->
+    <div class="schedule-container" id="scheduleContainer">
+      <!-- Time-scale (jam di atas) -->
+      <div class="time-scale" id="timeScale"></div>
+      <!-- Rows channel akan dibuat dengan JS -->
+    </div>
+  </div>
+
+  <script>
+    /************************************************************
+     * 1) Contoh Data EPG Sederhana (bisa diganti hasil parse XML)
+     ************************************************************/
+    const epgData = {
+      channels: [
+        {
+          id: "RCTI",
+          name: "RCTI",
+          logo: "https://via.placeholder.com/40x40?text=RCTI",
+          programs: [
+            {
+              title: "Kasih Jannah",
+              start: "2025-03-11T14:00:00+07:00",
+              stop:  "2025-03-11T14:30:00+07:00"
+            },
+            {
+              title: "Petualangan A",
+              start: "2025-03-11T14:30:00+07:00",
+              stop:  "2025-03-11T15:30:00+07:00"
+            }
+          ]
+        },
+        {
+          id: "MNC",
+          name: "MNCTV",
+          logo: "https://via.placeholder.com/40x40?text=MNC",
+          programs: [
+            {
+              title: "Sinetron Siang",
+              start: "2025-03-11T14:00:00+07:00",
+              stop:  "2025-03-11T16:00:00+07:00"
+            }
+          ]
+        }
+      ]
+    };
+
+    /************************************************************
+     * 2) Parameter Waktu & Layout Timeline
+     ************************************************************/
+    // Misal kita tampilkan jadwal 14:00 s/d 20:00 di hari 11 Maret 2025
+    const dayStart = new Date("2025-03-11T14:00:00+07:00");
+    const dayEnd   = new Date("2025-03-11T20:00:00+07:00");
+    const pxPerHour = 200; // 1 jam = 200px
+
+    /************************************************************
+     * 3) Inisialisasi UI Saat Halaman Dimuat
+     ************************************************************/
+    window.onload = () => {
+      createTimeScale();
+      createChannelList();
+      createScheduleRows();
+    };
+
+    /************************************************************
+     * 4) Membuat Time Scale (jam 14:00 -> 20:00)
+     ************************************************************/
+    function createTimeScale() {
+      const timeScale = document.getElementById("timeScale");
+      // Hitung berapa jam total
+      let totalHours = (dayEnd - dayStart) / (1000 * 60 * 60);
+      // Buat slot jam
+      for (let i = 0; i <= totalHours; i++) {
+        let slotTime = new Date(dayStart.getTime() + i * 3600000);
+        let slotDiv = document.createElement("div");
+        slotDiv.className = "time-slot";
+        slotDiv.textContent = formatTime(slotTime);
+        timeScale.appendChild(slotDiv);
+      }
+    }
+
+    /************************************************************
+     * 5) Membuat Sidebar Channel List
+     ************************************************************/
+    function createChannelList() {
+      const listDiv = document.getElementById("channelList");
+      epgData.channels.forEach(ch => {
+        let chItem = document.createElement("div");
+        chItem.className = "channel-item";
+
+        let img = document.createElement("img");
+        img.src = ch.logo;
+        chItem.appendChild(img);
+
+        let span = document.createElement("span");
+        span.className = "channel-name";
+        span.textContent = ch.name;
+        chItem.appendChild(span);
+
+        listDiv.appendChild(chItem);
+      });
+    }
+
+    /************************************************************
+     * 6) Membuat Schedule Rows & Program Blocks
+     ************************************************************/
+    function createScheduleRows() {
+      const scheduleContainer = document.getElementById("scheduleContainer");
+      // Di bawah time-scale
+      let offsetTop = 50; // height time-scale = 50px (sticky)
+      epgData.channels.forEach((ch, index) => {
+        // Buat row untuk channel ini
+        let row = document.createElement("div");
+        row.className = "schedule-row";
+        // Posisi vertical row => total row * height row
+        row.style.top = (offsetTop + index * 50) + "px";
+
+        // Buat program block
+        ch.programs.forEach(prog => {
+          const startDate = new Date(prog.start);
+          const stopDate  = new Date(prog.stop);
+          // Jika program di luar range dayStart/dayEnd, kita bisa skip atau clamp
+          if (stopDate <= dayStart || startDate >= dayEnd) {
+            // Program berada di luar jam 14:00-20:00
+            return;
+          }
+
+          // Hitung posisi left & width
+          const leftPx = getLeftOffset(startDate);
+          const rightPx = getLeftOffset(stopDate);
+          const widthPx = rightPx - leftPx;
+
+          let block = document.createElement("div");
+          block.className = "program-block";
+          block.style.left = leftPx + "px";
+          block.style.width = widthPx + "px";
+          block.textContent = prog.title;
+          row.appendChild(block);
+        });
+
+        scheduleContainer.appendChild(row);
+      });
+    }
+
+    /************************************************************
+     * 7) Fungsi Pembantu
+     ************************************************************/
+    // Mengubah waktu jadi string "HH:MM"
+    function formatTime(dateObj) {
+      let hh = dateObj.getHours().toString().padStart(2,"0");
+      let mm = dateObj.getMinutes().toString().padStart(2,"0");
+      return hh + ":" + mm;
+    }
+
+    // Menghitung posisi left (dalam px) berdasarkan startTime
+    function getLeftOffset(dateObj) {
+      // Selisih (ms) dari dayStart
+      let diffMs = dateObj - dayStart;
+      let diffHours = diffMs / (1000 * 60 * 60);
+      // px = jam * pxPerHour
+      let px = diffHours * pxPerHour;
+      if (px < 0) px = 0; // clamp minimal 0
+      // clamp max => total jam * pxPerHour
+      let maxPx = ((dayEnd - dayStart)/(1000*60*60)) * pxPerHour;
+      if (px > maxPx) px = maxPx;
+      return px;
+    }
+  </script>
+</body>
+</html>
