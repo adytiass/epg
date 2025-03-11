@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EPG TV Guide - Mobile</title>
+  <title>EPG TV Guide - Mobile (UTC+7)</title>
   <style>
     /* Global styles */
     body {
@@ -130,7 +130,6 @@
       <!-- Tombol channel akan tampil di sini -->
     </div>
     <div id="scheduleContainer">
-      <!-- Jadwal guide channel selama 3 hari ke depan akan ditampilkan di sini -->
       <p style="text-align:center;">Pilih provider dan channel untuk melihat jadwal.</p>
     </div>
   </div>
@@ -282,10 +281,15 @@
     }
 
     // Fungsi untuk mengonversi string tanggal XML menjadi objek Date
+    // Contoh input: "20250311053000 +0000" → Akan dikonversi ke zona waktu +0700
     function parseXMLDate(timeStr) {
       let parts = timeStr.split(" ");
       let datePart = parts[0];
       let tzPart = parts[1] ? parts[1] : "";
+      // Jika offset aslinya "+0000", ganti menjadi "+0700" agar sesuai dengan waktu Jakarta
+      if (tzPart === "+0000") {
+        tzPart = "+0700";
+      }
       if (tzPart.length === 5) {
         tzPart = tzPart.substring(0, 3) + ":" + tzPart.substring(3);
       }
