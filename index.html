@@ -48,7 +48,7 @@
   <h1>EPG TV Guide</h1>
   <label for="provider">Pilih Provider:</label>
   <select id="provider" onchange="loadEPG()">
-      <option value="">-- Pilih Provider --</option>
+    <option value="">-- Pilih Provider --</option>
   </select>
   <div id="epgContainer"></div>
   
@@ -57,110 +57,135 @@
       loadProviders();
     });
     
-    // Memuat daftar provider dari providers.json
+    // Memuat daftar provider dari file providers.json
     function loadProviders() {
       fetch("providers.json")
-          .then(response => response.json())
-          .then(data => {
-              let select = document.getElementById("provider");
-              data.forEach(provider => {
-                  let option = document.createElement("option");
-                  option.value = provider.file;
-                  option.textContent = provider.name;
-                  select.appendChild(option);
-              });
-          })
-          .catch(error => {
-              console.error("Error loading providers:", error);
+        .then(response => response.json())
+        .then(data => {
+          let select = document.getElementById("provider");
+          data.forEach(provider => {
+            let option = document.createElement("option");
+            option.value = provider.file;
+            option.textContent = provider.name;
+            select.appendChild(option);
           });
+        })
+        .catch(error => {
+          console.error("Error loading providers:", error);
+        });
     }
     
     // Memuat file XML EPG untuk provider yang dipilih
     function loadEPG() {
       let selectedFile = document.getElementById("provider").value;
       if (!selectedFile) {
-          document.getElementById("epgContainer").innerHTML = "";
-          return;
+        document.getElementById("epgContainer").innerHTML = "";
+        return;
       }
     
       fetch(selectedFile)
-          .then(response => response.text())
-          .then(xmlText => {
-              let parser = new DOMParser();
-              let xmlDoc = parser.parseFromString(xmlText, "application/xml");
-              displayEPG(xmlDoc);
-          })
-          .catch(error => {
-              console.error("Error loading EPG:", error);
-              document.getElementById("epgContainer").innerHTML = "<p>Error loading EPG.</p>";
-          });
+        .then(response => response.text())
+        .then(xmlText => {
+          let parser = new DOMParser();
+          let xmlDoc = parser.parseFromString(xmlText, "application/xml");
+          displayCurrentPrograms(xmlDoc);
+        })
+        .catch(error => {
+          console.error("Error loading EPG:", error);
+          document.getElementById("epgContainer").innerHTML = "<p>Error loading EPG.</p>";
+        });
     }
     
-    // Menampilkan program yang sedang tayang di setiap channel pada saat ini
-    function displayEPG(xmlDoc) {
+    // Membangun peta channel: id -> display-name
+    function getChannels(xmlDoc) {
+      let channels = {};
+      let channelElems = xmlDoc.getElementsByTagName("channel");
+      for (let i = 0; i < channelElems.length; i++) {
+        let id = channelElems[i].getAttribute("id");
+        let displayNameElem = channelElems[i].getElementsByTagName("display-name")[0];
+        let displayName = displayNameElem ? displayNameElem.textContent : id;
+        channels[id] = displayName;
+      }
+      return channels;
+    }
+    
+    // Menampilkan program yang sedang tayang untuk setiap channel
+    function displayCurrentPrograms(xmlDoc) {
       let epgContainer = document.getElementById("epgContainer");
       epgContainer.innerHTML = "";
-    
+      
+      // Buat mapping channel id ke display name
+      let channelsMap = getChannels(xmlDoc);
+      
       let now = new Date();
       let programmes = xmlDoc.getElementsByTagName("programme");
-      let channelPrograms = {}; // Menyimpan data: key = channel, value = program yang sedang tayang
-    
+      let currentPrograms = {};  // key: channel id, value: program yang sedang tayang
+      
       for (let i = 0; i < programmes.length; i++) {
-          let prog = programmes[i];
-          let startStr = prog.getAttribute("start");
-          let stopStr = prog.getAttribute("stop");
-          if (!startStr || !stopStr) continue;
+        let prog = programmes[i];
+        let startStr = prog.getAttribute("start");
+        let stopStr = prog.getAttribute("stop");
+        if (!startStr || !stopStr) continue;
     
-          let startDate = parseXMLDate(startStr);
-          let stopDate = parseXMLDate(stopStr);
+        let startDate = parseXMLDate(startStr);
+        let stopDate = parseXMLDate(stopStr);
     
-          // Jika waktu saat ini berada di antara start dan stop
-          if (now >= startDate && now <= stopDate) {
-              let channel = prog.getAttribute("channel");
-              let titleElem = prog.getElementsByTagName("title")[0];
-              let title = titleElem ? titleElem.textContent : "No Title";
-              channelPrograms[channel] = {
-                  title: title,
-                  start: startDate,
-                  stop: stopDate
-              };
-          }
+        // Jika waktu sekarang berada di antara waktu mulai dan selesai
+        if (now >= startDate && now <= stopDate) {
+          let channelId = prog.getAttribute("channel");
+          let titleElem = prog.getElementsByTagName("title")[0];
+          let title = titleElem ? titleElem.textContent : "No Title";
+          currentPrograms[channelId] = {
+            title: title,
+            start: startDate,
+            stop: stopDate
+          };
+        }
       }
     
-      if (Object.keys(channelPrograms).length === 0) {
-          epgContainer.innerHTML = "<p>Tidak ada program yang sedang tayang.</p>";
-          return;
+      if (Object.keys(currentPrograms).length === 0) {
+        epgContainer.innerHTML = "<p>Tidak ada program yang sedang tayang.</p>";
+        return;
       }
     
-      // Tampilkan data untuk tiap channel
-      for (let channel in channelPrograms) {
-          let program = channelPrograms[channel];
-          let div = document.createElement("div");
-          div.classList.add("program");
-          let startTime = formatTime(program.start);
-          let stopTime = formatTime(program.stop);
-          div.innerHTML = `<strong>Channel:</strong> ${channel}<br>
-                           <strong>Program:</strong> ${program.title}<br>
-                           <strong>Waktu:</strong> ${startTime} - ${stopTime}`;
-          epgContainer.appendChild(div);
+      // Tampilkan program untuk tiap channel
+      for (let channelId in currentPrograms) {
+        let program = currentPrograms[channelId];
+        let channelName = channelsMap[channelId] || channelId;
+        let div = document.createElement("div");
+        div.classList.add("program");
+        div.innerHTML = `<strong>Channel:</strong> ${channelName}<br>
+                         <strong>Program:</strong> ${program.title}<br>
+                         <strong>Waktu:</strong> ${formatTime(program.start)} - ${formatTime(program.stop)}`;
+        epgContainer.appendChild(div);
       }
     }
     
-    // Fungsi untuk mengubah format string tanggal dari XML (YYYYMMDDhhmmss) menjadi objek Date
+    // Mengubah string tanggal dari XML (contoh: "20241029172000 +0000") menjadi objek Date
     function parseXMLDate(timeStr) {
-      // Jika terdapat informasi timezone, pisahkan dan gunakan bagian tanggalnya saja
+      // Pisahkan bagian tanggal dan zona waktu
       let parts = timeStr.split(" ");
       let datePart = parts[0];
-      let year = parseInt(datePart.substring(0, 4));
-      let month = parseInt(datePart.substring(4, 6)) - 1;
-      let day = parseInt(datePart.substring(6, 8));
-      let hour = parseInt(datePart.substring(8, 10));
-      let minute = parseInt(datePart.substring(10, 12));
-      let second = parseInt(datePart.substring(12, 14));
-      return new Date(year, month, day, hour, minute, second);
+      let tzPart = parts[1] ? parts[1] : "";
+      
+      // Ekstrak komponen tanggal dan waktu
+      let year = datePart.substring(0, 4);
+      let month = datePart.substring(4, 6);
+      let day = datePart.substring(6, 8);
+      let hour = datePart.substring(8, 10);
+      let minute = datePart.substring(10, 12);
+      let second = datePart.substring(12, 14);
+      
+      // Format zona waktu (misal "+0000" menjadi "+00:00")
+      if (tzPart.length === 5) {
+        tzPart = tzPart.substring(0, 3) + ":" + tzPart.substring(3);
+      }
+      
+      let isoString = `${year}-${month}-${day}T${hour}:${minute}:${second}${tzPart}`;
+      return new Date(isoString);
     }
     
-    // Fungsi untuk memformat objek Date menjadi HH:MM
+    // Memformat objek Date menjadi HH:MM
     function formatTime(dateObj) {
       let hours = dateObj.getHours().toString().padStart(2, '0');
       let minutes = dateObj.getMinutes().toString().padStart(2, '0');
