@@ -133,7 +133,7 @@
 
   <script>
     // Load XML EPG
-    fetch("epg.xml")
+    fetch("https://raw.githubusercontent.com/adytiass/epg/refs/heads/master/channel/vidio.com.xml")
       .then(response => response.text())
       .then(str => new window.DOMParser().parseFromString(str, "text/xml"))
       .then(parseEPG);
