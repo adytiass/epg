@@ -1,119 +1,78 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EPG TV Guide - Mobile (UTC+7)</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EPG TV Guide (Current Program Only)</title>
   <style>
-    /* Global styles */
-    body {
+    /* Reset & Global */
+    * {
+      box-sizing: border-box;
       margin: 0;
+      padding: 0;
+    }
+    body {
       font-family: Arial, sans-serif;
       background-color: #262626;
       color: #f0f0f0;
     }
     header {
       background-color: #333;
-      padding: 10px;
+      padding: 16px;
       text-align: center;
     }
     h1 {
-      margin: 0;
-      font-size: 22px;
+      margin: 0 0 8px;
       font-family: "Martian Mono", monospace;
+      font-size: 20px;
     }
-    #providerSelect {
-      margin-top: 10px;
+    select {
       padding: 8px;
       font-size: 16px;
-      width: 90%;
+      margin-top: 8px;
+      width: 80%;
       max-width: 300px;
     }
-    /* Container for channels and schedule */
+
+    /* Container utama */
     #container {
-      display: flex;
-      min-height: calc(100vh - 60px);
+      padding: 16px;
     }
-    /* Sidebar channel list */
-    #channelList {
-      width: 250px;
+
+    /* Tiap channel */
+    .channel {
       background-color: #444;
-      padding: 10px;
-      overflow-y: auto;
-      border-right: 1px solid #555;
-    }
-    #channelList button {
-      width: 100%;
-      padding: 10px;
-      margin: 5px 0;
-      border: none;
-      background-color: #555;
-      color: #f0f0f0;
-      cursor: pointer;
-      text-align: left;
+      padding: 12px;
+      margin-bottom: 12px;
       border-radius: 4px;
+    }
+    .channel h2 {
       font-size: 16px;
+      margin-bottom: 6px;
     }
-    #channelList button:hover, #channelList button.active {
-      background-color: #ff9800;
-      color: #000;
+    .program {
+      padding: 6px 0;
+      font-size: 14px;
     }
-    /* Schedule container */
-    #scheduleContainer {
-      flex: 1;
-      padding: 20px;
-      overflow-y: auto;
-    }
-    .daySection {
-      margin-bottom: 20px;
-    }
-    .daySection h2 {
-      border-bottom: 1px solid #777;
-      padding-bottom: 5px;
-      margin-bottom: 10px;
-      font-size: 18px;
-    }
-    .programme {
-      padding: 8px;
-      margin-bottom: 5px;
-      border-radius: 4px;
-      background-color: #555;
-      font-size: 16px;
-    }
-    .programme.current {
-      background-color: #ff9800;
-      color: #000;
+    /* Highlight hijau untuk program yang sedang tayang */
+    .program.current {
+      background-color: #4CAF50;
+      color: #fff;
       font-weight: bold;
+      padding: 8px;
+      border-radius: 4px;
     }
-    /* Mobile responsiveness */
+
+    /* Responsif */
     @media (max-width: 600px) {
-      #container {
-        flex-direction: column;
+      select {
+        width: 90%;
       }
-      #channelList {
-        width: 100%;
-        border-right: none;
-        border-bottom: 1px solid #555;
-        max-height: 150px;
-        overflow-x: auto;
-        display: flex;
-        flex-wrap: nowrap;
+      .channel h2 {
+        font-size: 15px;
       }
-      #channelList button {
-        flex: 1 0 auto;
-        margin: 5px;
-        white-space: nowrap;
-        padding: 8px;
-        font-size: 14px;
-      }
-      #scheduleContainer {
-        padding: 10px;
-      }
-      .daySection h2 {
-        font-size: 16px;
-      }
-      .programme {
-        font-size: 14px;
+      .program {
+        font-size: 13px;
       }
     }
   </style>
@@ -121,187 +80,167 @@
 <body>
   <header>
     <h1>EPG TV Guide</h1>
-    <select id="providerSelect" onchange="loadProviderXML()">
-      <option value="">Pilih Provider</option>
+    <select id="providerSelect" onchange="loadEPG()">
+      <option value="">-- Pilih Provider --</option>
     </select>
   </header>
-  <div id="container">
-    <div id="channelList">
-      <!-- Tombol channel akan tampil di sini -->
-    </div>
-    <div id="scheduleContainer">
-      <p style="text-align:center;">Pilih provider dan channel untuk melihat jadwal.</p>
-    </div>
-  </div>
-  <script>
-    let providerData = []; // Data dari providers.json
-    let xmlDocGlobal = null; // Dokumen XML EPG dari provider terpilih
 
-    document.addEventListener("DOMContentLoaded", function() {
+  <div id="container">
+    <p>Pilih provider untuk menampilkan program yang sedang tayang.</p>
+  </div>
+
+  <script>
+    let providerList = [];  // Menyimpan data providers.json
+    let xmlDoc = null;      // Dokumen XML EPG untuk provider terpilih
+
+    document.addEventListener("DOMContentLoaded", () => {
       loadProviders();
     });
 
-    // Memuat daftar provider dari file providers.json
+    // 1. Memuat daftar provider dari providers.json
     function loadProviders() {
       fetch("providers.json")
-        .then(response => response.json())
+        .then(resp => resp.json())
         .then(data => {
-          providerData = data;
-          let select = document.getElementById("providerSelect");
-          data.forEach((provider, index) => {
+          providerList = data;
+          const providerSelect = document.getElementById("providerSelect");
+          data.forEach((prov, idx) => {
             let option = document.createElement("option");
-            option.value = index; // gunakan indeks sebagai nilai
-            option.textContent = provider.name;
-            select.appendChild(option);
+            option.value = idx; // index di array
+            option.textContent = prov.name;
+            providerSelect.appendChild(option);
           });
         })
-        .catch(error => console.error("Error loading providers.json:", error));
+        .catch(err => {
+          console.error("Error loading providers:", err);
+        });
     }
 
-    // Memuat file XML EPG untuk provider yang dipilih
-    function loadProviderXML() {
-      let select = document.getElementById("providerSelect");
-      let index = select.value;
-      if (index === "") {
-        clearChannels();
-        document.getElementById("scheduleContainer").innerHTML = "<p>Pilih provider untuk melihat jadwal.</p>";
+    // 2. Memuat file XML EPG berdasarkan provider terpilih
+    function loadEPG() {
+      const select = document.getElementById("providerSelect");
+      const idx = select.value;
+      if (idx === "") {
+        document.getElementById("container").innerHTML = "<p>Pilih provider untuk menampilkan program yang sedang tayang.</p>";
         return;
       }
-      let provider = providerData[index];
+      const provider = providerList[idx];
       fetch(provider.file)
-        .then(response => response.text())
+        .then(resp => resp.text())
         .then(xmlText => {
-          let parser = new DOMParser();
-          xmlDocGlobal = parser.parseFromString(xmlText, "application/xml");
-          buildChannelList(xmlDocGlobal);
+          const parser = new DOMParser();
+          xmlDoc = parser.parseFromString(xmlText, "application/xml");
+          displayCurrentPrograms(xmlDoc);
         })
-        .catch(error => {
-          console.error("Error loading provider XML:", error);
-          document.getElementById("scheduleContainer").innerHTML = "<p>Error loading provider XML.</p>";
+        .catch(err => {
+          console.error("Error loading EPG XML:", err);
+          document.getElementById("container").innerHTML = "<p>Error loading EPG.</p>";
         });
     }
 
-    // Mengosongkan daftar channel
-    function clearChannels() {
-      document.getElementById("channelList").innerHTML = "";
-    }
+    // 3. Untuk setiap channel, cari program yang sedang tayang (waktu now di antara start & stop)
+    function displayCurrentPrograms(xmlDoc) {
+      const container = document.getElementById("container");
+      container.innerHTML = ""; // bersihkan kontainer
 
-    // Membangun daftar channel sebagai tombol dari elemen <channel> pada XML
-    function buildChannelList(xmlDoc) {
-      clearChannels();
-      let channelElems = xmlDoc.getElementsByTagName("channel");
-      let channelListDiv = document.getElementById("channelList");
-      for (let i = 0; i < channelElems.length; i++) {
-        let channelId = channelElems[i].getAttribute("id");
-        let displayNameElem = channelElems[i].getElementsByTagName("display-name")[0];
-        let displayName = displayNameElem ? displayNameElem.textContent : channelId;
-        let btn = document.createElement("button");
-        btn.textContent = displayName;
-        btn.dataset.channelId = channelId;
-        btn.onclick = function() { selectChannel(channelId, this); };
-        channelListDiv.appendChild(btn);
-      }
-    }
-
-    // Ketika tombol channel diklik, tampilkan jadwal 3 hari ke depan untuk channel tersebut
-    function selectChannel(channelId, btnElement) {
-      // Tandai tombol yang aktif
-      let buttons = document.querySelectorAll("#channelList button");
-      buttons.forEach(btn => btn.classList.remove("active"));
-      btnElement.classList.add("active");
-      displaySchedule(channelId);
-    }
-
-    // Menampilkan jadwal guide untuk channel tertentu selama 3 hari ke depan
-    function displaySchedule(channelId) {
-      if (!xmlDocGlobal) return;
-      let now = new Date();
-      let endDate = new Date(now);
-      endDate.setDate(now.getDate() + 3);
-
-      // Ambil semua elemen <programme> untuk channel tersebut dalam rentang 3 hari
-      let programmes = xmlDocGlobal.getElementsByTagName("programme");
-      let channelProgrammes = [];
-      for (let i = 0; i < programmes.length; i++) {
-        let prog = programmes[i];
-        if (prog.getAttribute("channel") !== channelId) continue;
-        let startDate = parseXMLDate(prog.getAttribute("start"));
-        if (startDate >= now && startDate <= endDate) {
-          channelProgrammes.push({
-            start: startDate,
-            stop: parseXMLDate(prog.getAttribute("stop")),
-            title: prog.getElementsByTagName("title")[0]?.textContent || "No Title"
-          });
-        }
-      }
-
-      // Urutkan berdasarkan waktu mulai
-      channelProgrammes.sort((a, b) => a.start - b.start);
-
-      // Kelompokkan program berdasarkan tanggal (YYYY-MM-DD)
-      let programmesByDay = {};
-      channelProgrammes.forEach(prog => {
-        let dayStr = prog.start.toISOString().split("T")[0];
-        if (!programmesByDay[dayStr]) {
-          programmesByDay[dayStr] = [];
-        }
-        programmesByDay[dayStr].push(prog);
-      });
-
-      let scheduleContainer = document.getElementById("scheduleContainer");
-      scheduleContainer.innerHTML = "";
-      if (Object.keys(programmesByDay).length === 0) {
-        scheduleContainer.innerHTML = "<p>Tidak ada jadwal untuk 3 hari ke depan.</p>";
+      // Ambil semua channel
+      const channelElems = xmlDoc.getElementsByTagName("channel");
+      if (channelElems.length === 0) {
+        container.innerHTML = "<p>Tidak ada channel ditemukan.</p>";
         return;
       }
 
-      // Untuk setiap hari, buat section dengan header tanggal dan program
-      for (let day in programmesByDay) {
-        let daySection = document.createElement("div");
-        daySection.classList.add("daySection");
-        let dayHeader = document.createElement("h2");
-        let dateObj = new Date(day);
-        dayHeader.textContent = dateObj.toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
-        daySection.appendChild(dayHeader);
+      // Buat mapping channel ID -> Display Name
+      let channelMap = {};
+      for (let i = 0; i < channelElems.length; i++) {
+        const chId = channelElems[i].getAttribute("id");
+        const nameElem = channelElems[i].getElementsByTagName("display-name")[0];
+        const displayName = nameElem ? nameElem.textContent : chId;
+        channelMap[chId] = displayName;
+      }
 
-        programmesByDay[day].forEach(prog => {
-          let progDiv = document.createElement("div");
-          progDiv.classList.add("programme");
-          // Highlight program yang sedang tayang
-          if (now >= prog.start && now <= prog.stop) {
-            progDiv.classList.add("current");
-          }
-          let startTime = formatTime(prog.start);
-          let stopTime = formatTime(prog.stop);
-          progDiv.innerHTML = `<strong>${prog.title}</strong><br>${startTime} - ${stopTime}`;
-          daySection.appendChild(progDiv);
-        });
-        scheduleContainer.appendChild(daySection);
+      // Ambil semua programme
+      const programmes = xmlDoc.getElementsByTagName("programme");
+      let currentProgramMap = {}; 
+      // key: channelId, value: { title, start, stop }
+
+      const now = new Date();
+
+      // Cari program yang sedang tayang
+      for (let i = 0; i < programmes.length; i++) {
+        const prog = programmes[i];
+        const chId = prog.getAttribute("channel");
+        const startStr = prog.getAttribute("start");
+        const stopStr = prog.getAttribute("stop");
+        if (!startStr || !stopStr) continue;
+
+        const startDate = parseXMLDate(startStr);
+        const stopDate = parseXMLDate(stopStr);
+        // Apakah now di antara start & stop
+        if (now >= startDate && now <= stopDate) {
+          const titleElem = prog.getElementsByTagName("title")[0];
+          const title = titleElem ? titleElem.textContent : "No Title";
+          currentProgramMap[chId] = { title, start: startDate, stop: stopDate };
+        }
+      }
+
+      // Tampilkan hasil per channel
+      for (let chId in channelMap) {
+        // Buat div channel
+        let channelDiv = document.createElement("div");
+        channelDiv.classList.add("channel");
+
+        let channelHeader = document.createElement("h2");
+        channelHeader.textContent = channelMap[chId];
+        channelDiv.appendChild(channelHeader);
+
+        // Cek apakah channel ini punya program sedang tayang
+        let programDiv = document.createElement("div");
+        programDiv.classList.add("program");
+
+        if (currentProgramMap[chId]) {
+          // Ada program aktif
+          programDiv.classList.add("current");  // highlight hijau
+          const { title, start, stop } = currentProgramMap[chId];
+          programDiv.innerHTML = `${title}<br>${formatTime(start)} - ${formatTime(stop)}`;
+        } else {
+          // Tidak ada program yang sedang tayang
+          programDiv.textContent = "Tidak ada program yang sedang tayang.";
+        }
+        channelDiv.appendChild(programDiv);
+
+        container.appendChild(channelDiv);
       }
     }
 
-    // Fungsi untuk mengonversi string tanggal XML menjadi objek Date
-    // Contoh input: "20250311053000 +0000" → Akan dikonversi ke zona waktu +0700
-    function parseXMLDate(timeStr) {
-      let parts = timeStr.split(" ");
-      let datePart = parts[0];
-      let tzPart = parts[1] ? parts[1] : "";
-      // Jika offset aslinya "+0000", ganti menjadi "+0700" agar sesuai dengan waktu Jakarta
-      if (tzPart === "+0000") {
-        tzPart = "+0700";
-      }
+    // Parse string datetime EPG (misal "20250311131500 +0700") -> Date object
+    function parseXMLDate(dateStr) {
+      let [datePart, tzPart] = dateStr.split(" ");
+      if (!tzPart) tzPart = "+0000"; // jika tidak ada info timezone
+
+      // Ubah "+0700" jadi "+07:00"
       if (tzPart.length === 5) {
         tzPart = tzPart.substring(0, 3) + ":" + tzPart.substring(3);
       }
-      let isoString = `${datePart.substring(0,4)}-${datePart.substring(4,6)}-${datePart.substring(6,8)}T${datePart.substring(8,10)}:${datePart.substring(10,12)}:${datePart.substring(12,14)}${tzPart}`;
+
+      // Contoh datePart: "20250311131500"
+      const year = datePart.substring(0, 4);
+      const month = datePart.substring(4, 6);
+      const day = datePart.substring(6, 8);
+      const hour = datePart.substring(8, 10);
+      const minute = datePart.substring(10, 12);
+      const second = datePart.substring(12, 14);
+
+      // Bentuk ISO string
+      const isoString = `${year}-${month}-${day}T${hour}:${minute}:${second}${tzPart}`;
       return new Date(isoString);
     }
 
-    // Fungsi untuk memformat objek Date menjadi HH:MM
+    // Format Date -> "HH:MM"
     function formatTime(dateObj) {
-      let hours = dateObj.getHours().toString().padStart(2, '0');
-      let minutes = dateObj.getMinutes().toString().padStart(2, '0');
-      return `${hours}:${minutes}`;
+      let hh = dateObj.getHours().toString().padStart(2, "0");
+      let mm = dateObj.getMinutes().toString().padStart(2, "0");
+      return `${hh}:${mm}`;
     }
   </script>
 </body>
