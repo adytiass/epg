@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        site: [mncvision.id, visionplus.id, cubmu.com, firstmedia.com, dens.tv, indihometv.com, vidio.com]
+        site: [visionplus.id, cubmu.com, firstmedia.com, dens.tv, indihometv.com, vidio.com]
         lang: [id]  # Bisa ditambahkan en jika perlu
     steps:
       - name: Checkout repository
@@ -38,14 +38,11 @@ jobs:
       - name: Grab EPG for ${{ matrix.site }}
         run: npm run grab -- --site=${{ matrix.site }} --lang=${{ matrix.lang }} --output=channel/${{ matrix.site }}.xml --days 3 --maxConnections 5
 
-      - name: Commit and Push EPG Output for ${{ matrix.site }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git reset --hard HEAD
-          git pull origin master --rebase
-          git add channel/${{ matrix.site }}.xml
-          git commit -m "Update EPG output for ${{ matrix.site }} [skip ci]" || echo "No changes to commit"
-          git push origin master
+            
+            git config --global user.name "github-actions[bot]"
+            git config --global user.email "github-actions[bot]@users.noreply.github.com"
+            git reset --hard HEAD
+            git pull origin master --rebase
+            git add channel/${{ matrix.site }}.xml
+            git commit -m "Update EPG output for ${{ matrix.site }} [skip ci]" || echo "No changes to commit"
+            git push origin master
