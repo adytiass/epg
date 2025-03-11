@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>EPG TV Guide (Current Program Only)</title>
+  <title>EPG TV Guide (Highlight + Full 3-Day)</title>
   <style>
     /* Reset & Global */
     * {
@@ -61,6 +61,60 @@
       font-weight: bold;
       padding: 8px;
       border-radius: 4px;
+      cursor: pointer; /* Supaya user tahu bisa diklik */
+    }
+
+    /* Modal styling */
+    #modal {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.7);
+      display: none; /* disembunyikan secara default */
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+    #modalContent {
+      background: #333;
+      padding: 20px;
+      border-radius: 8px;
+      max-width: 90%;
+      max-height: 80%;
+      overflow-y: auto;
+      position: relative;
+    }
+    #closeModal {
+      background: #f44336;
+      border: none;
+      color: #fff;
+      padding: 8px 12px;
+      font-size: 14px;
+      border-radius: 4px;
+      cursor: pointer;
+      position: absolute;
+      top: 10px; right: 10px;
+    }
+    .daySection {
+      margin-bottom: 20px;
+    }
+    .daySection h3 {
+      border-bottom: 1px solid #777;
+      padding-bottom: 5px;
+      margin-bottom: 10px;
+      font-size: 16px;
+    }
+    .fullProgram {
+      background-color: #555;
+      margin-bottom: 5px;
+      padding: 8px;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    .fullProgram.current {
+      background-color: #4CAF50;
+      color: #fff;
+      font-weight: bold;
     }
 
     /* Responsif */
@@ -73,6 +127,9 @@
       }
       .program {
         font-size: 13px;
+      }
+      .daySection h3 {
+        font-size: 14px;
       }
     }
   </style>
@@ -89,8 +146,16 @@
     <p>Pilih provider untuk menampilkan program yang sedang tayang.</p>
   </div>
 
+  <!-- Modal Popup untuk Full 3-Day Schedule -->
+  <div id="modal">
+    <div id="modalContent">
+      <button id="closeModal" onclick="hideModal()">Tutup</button>
+      <div id="modalSchedule"><!-- Jadwal channel 3 hari akan muncul di sini --></div>
+    </div>
+  </div>
+
   <script>
-    let providerList = [];  // Menyimpan data providers.json
+    let providerList = [];  // Data dari providers.json
     let xmlDoc = null;      // Dokumen XML EPG untuk provider terpilih
 
     document.addEventListener("DOMContentLoaded", () => {
@@ -138,7 +203,7 @@
         });
     }
 
-    // 3. Untuk setiap channel, cari program yang sedang tayang (waktu now di antara start & stop)
+    // 3. Tampilkan program yang sedang tayang untuk tiap channel
     function displayCurrentPrograms(xmlDoc) {
       const container = document.getElementById("container");
       container.innerHTML = ""; // bersihkan kontainer
@@ -150,7 +215,7 @@
         return;
       }
 
-      // Buat mapping channel ID -> Display Name
+      // Mapping channel ID -> Display Name
       let channelMap = {};
       for (let i = 0; i < channelElems.length; i++) {
         const chId = channelElems[i].getAttribute("id");
@@ -194,15 +259,16 @@
         channelHeader.textContent = channelMap[chId];
         channelDiv.appendChild(channelHeader);
 
-        // Cek apakah channel ini punya program sedang tayang
         let programDiv = document.createElement("div");
         programDiv.classList.add("program");
 
         if (currentProgramMap[chId]) {
-          // Ada program aktif
-          programDiv.classList.add("current");  // highlight hijau
+          // Ada program aktif => highlight hijau & bisa diklik
+          programDiv.classList.add("current");
           const { title, start, stop } = currentProgramMap[chId];
           programDiv.innerHTML = `${title}<br>${formatTime(start)} - ${formatTime(stop)}`;
+          // Jika di-klik, tampilkan modal 3 hari channel
+          programDiv.addEventListener("click", () => showChannelSchedule(chId));
         } else {
           // Tidak ada program yang sedang tayang
           programDiv.textContent = "Tidak ada program yang sedang tayang.";
@@ -213,26 +279,107 @@
       }
     }
 
+    // 4. Ketika highlight ditekan, tampilkan Full Guide 3 hari channel tsb di modal
+    function showChannelSchedule(channelId) {
+      if (!xmlDoc) return;
+      const modal = document.getElementById("modal");
+      const modalSchedule = document.getElementById("modalSchedule");
+      modalSchedule.innerHTML = ""; // bersihkan isi modal
+
+      let now = new Date();
+      let endDate = new Date(now);
+      endDate.setDate(now.getDate() + 3); // 3 hari ke depan
+
+      // Ambil semua <programme> untuk channel ini dalam rentang 3 hari
+      let programmes = xmlDoc.getElementsByTagName("programme");
+      let channelProgs = [];
+      for (let i = 0; i < programmes.length; i++) {
+        let prog = programmes[i];
+        if (prog.getAttribute("channel") !== channelId) continue;
+
+        let startStr = prog.getAttribute("start");
+        let stopStr = prog.getAttribute("stop");
+        if (!startStr || !stopStr) continue;
+
+        let startDate = parseXMLDate(startStr);
+        if (startDate >= now && startDate <= endDate) {
+          let stopDate = parseXMLDate(stopStr);
+          let titleElem = prog.getElementsByTagName("title")[0];
+          let title = titleElem ? titleElem.textContent : "No Title";
+          channelProgs.push({ title, start: startDate, stop: stopDate });
+        }
+      }
+      // Urutkan berdasarkan start time
+      channelProgs.sort((a, b) => a.start - b.start);
+
+      if (channelProgs.length === 0) {
+        modalSchedule.innerHTML = "<p>Tidak ada jadwal 3 hari ke depan untuk channel ini.</p>";
+      } else {
+        // Kelompokkan berdasarkan tanggal (YYYY-MM-DD)
+        let progsByDay = {};
+        channelProgs.forEach(p => {
+          let dayStr = p.start.toISOString().split("T")[0];
+          if (!progsByDay[dayStr]) progsByDay[dayStr] = [];
+          progsByDay[dayStr].push(p);
+        });
+
+        // Tampilkan per-hari
+        for (let day in progsByDay) {
+          let daySection = document.createElement("div");
+          daySection.classList.add("daySection");
+
+          let dateObj = new Date(day);
+          let dayHeader = document.createElement("h3");
+          dayHeader.textContent = dateObj.toLocaleDateString("id-ID", {
+            weekday: "long", day: "numeric", month: "long", year: "numeric"
+          });
+          daySection.appendChild(dayHeader);
+
+          progsByDay[day].forEach(p => {
+            let divProg = document.createElement("div");
+            divProg.classList.add("fullProgram");
+            // Highlight jika program ini sedang tayang
+            if (now >= p.start && now <= p.stop) {
+              divProg.classList.add("current");
+            }
+            divProg.innerHTML = `
+              <strong>${p.title}</strong><br>
+              ${formatTime(p.start)} - ${formatTime(p.stop)}
+            `;
+            daySection.appendChild(divProg);
+          });
+
+          modalSchedule.appendChild(daySection);
+        }
+      }
+      // Tampilkan modal
+      modal.style.display = "flex";
+    }
+
+    // Tutup modal
+    function hideModal() {
+      const modal = document.getElementById("modal");
+      modal.style.display = "none";
+    }
+
     // Parse string datetime EPG (misal "20250311131500 +0700") -> Date object
     function parseXMLDate(dateStr) {
       let [datePart, tzPart] = dateStr.split(" ");
-      if (!tzPart) tzPart = "+0000"; // jika tidak ada info timezone
+      if (!tzPart) tzPart = "+0000"; // default UTC jika tak ada info
 
-      // Ubah "+0700" jadi "+07:00"
+      // Ubah "+0700" => "+07:00"
       if (tzPart.length === 5) {
-        tzPart = tzPart.substring(0, 3) + ":" + tzPart.substring(3);
+        tzPart = tzPart.substring(0,3) + ":" + tzPart.substring(3);
       }
 
-      // Contoh datePart: "20250311131500"
-      const year = datePart.substring(0, 4);
-      const month = datePart.substring(4, 6);
-      const day = datePart.substring(6, 8);
-      const hour = datePart.substring(8, 10);
-      const minute = datePart.substring(10, 12);
-      const second = datePart.substring(12, 14);
+      const year = datePart.substring(0,4);
+      const month = datePart.substring(4,6);
+      const day = datePart.substring(6,8);
+      const hour = datePart.substring(8,10);
+      const minute = datePart.substring(10,12);
+      const second = datePart.substring(12,14);
 
-      // Bentuk ISO string
-      const isoString = `${year}-${month}-${day}T${hour}:${minute}:${second}${tzPart}`;
+      let isoString = `${year}-${month}-${day}T${hour}:${minute}:${second}${tzPart}`;
       return new Date(isoString);
     }
 
